@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Pessoa - Controle de Presença</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Editar Pessoa</h2>
+
+        <form action="{{ url_for('editar_pessoa', pessoa_id=pessoa['id']) }}" method="POST">
+            <div class="form-group">
+                <label for="nome">Nome Completo:</label>
+                <input type="text" id="nome" name="nome" value="{{ pessoa['nome'] }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="matricula">Matrícula / CPF:</label>
+                <input type="text" id="matricula" name="matricula" value="{{ pessoa['matricula'] }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="turma_setor">Instrutor:</label>
+                <input type="text" id="turma_setor" name="turma_setor" value="{{ pessoa['turma_setor'] }}">
+            </div>
+
+            <div class="form-group">
+                <label for="tipo">Tipo:</label>
+                <select id="tipo" name="tipo" required>
+                    <option value="Aluno" {% if pessoa['tipo'] == 'Aluno' %}selected{% endif %}>Aluno</option>
+                    <option value="Funcionario" {% if pessoa['tipo'] == 'Funcionario' %}selected{% endif %}>Funcionário</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        </form>
+
+        <br>
+        <a href="/">← Voltar para a Página Inicial</a>
+    </div>
+</body>
+</html>

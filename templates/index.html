@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário de Presença</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Diário de Presença</h1>
+        <a href="/cadastrar" class="btn">➕ Cadastrar Nova Pessoa</a>
+        <hr>
+        <a href="/relatorio" class="btn" style="background-color: #4CAF50; color: white; padding: 5px 10px; text-decoration: none;">📊 Ver Relatório de Presenças</a>
+        {% if pessoas %}
+        <form action="/registrar_presenca" method="POST">
+            <div class="form-group">
+                <label for="data"><strong>Data da Chamada:</strong></label>
+                <input type="date" id="data" name="data" value="{{ data_hoje }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="descricao"><strong>Descrição / Observação:</strong></label>
+                <input type="text" id="descricao" name="descricao" placeholder="Ex: Aula de Hoje / Expediente">
+            </div>
+
+            <h3>Lista de Chamada:</h3>
+            <table border="1" cellpadding="8" style="width:100%; text-align:left;">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Instrutor</th>
+                        <th>Frequência</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pessoa in pessoas %}
+                    <tr>
+                        <td>{{ pessoa.nome }}</td>
+                        <td>{{ pessoa.turma_setor }}</td>
+                        <td>
+                            <label>
+                                <input type="radio" name="status_{{ pessoa.id }}" value="Presente" checked> 🟢 Presente
+                            </label>
+                            &nbsp;&nbsp;
+                            <label>
+                                <input type="radio" name="status_{{ pessoa.id }}" value="Falta"> 🔴 Falta
+                            </label>
+                            <div style="margin-top: 8px;">
+                                <a href="{{ url_for('editar_pessoa', pessoa_id=pessoa.id) }}" class="btn" style="padding: 4px 8px; font-size: 12px;">✏️ Editar</a>
+                                <form action="{{ url_for('excluir_pessoa', pessoa_id=pessoa.id) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn" style="padding: 4px 8px; font-size: 12px; background: #c0392b;">🗑️ Excluir</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <br>
+            <button type="submit" style="padding: 10px 20px; background-color: green; color: white; border: none; cursor: pointer;">
+                💾 Salvar Chamada do Dia
+            </button>
+        </form>
+        {% else %}
+            <p>Nenhuma pessoa cadastrada ainda. Clique no botão acima para cadastrar!</p>
+        {% endif %}
+    </div>
+</body>
+</html>

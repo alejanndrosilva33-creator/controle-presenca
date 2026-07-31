@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Frequência</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Relatório de Frequência</h1>
+        <a href="/" class="btn">← Voltar para a Chamada</a>
+        <hr>
+
+        <table border="1" cellpadding="8" style="width:100%; text-align:left;">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Turma/Setor</th>
+                    <th>Presenças</th>
+                    <th>Faltas</th>
+                    <th>Total de Dias</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for linha in dados %}
+                <tr>
+                    <td>{{ linha.nome }}</td>
+                    <td>{{ linha.turma_setor }}</td>
+                    <td style="color: green; font-weight: bold;">{{ linha.presencas }}</td>
+                    <td style="color: red; font-weight: bold;">{{ linha.faltas }}</td>
+                    <td>{{ linha.total_aulas }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
