@@ -12,8 +12,8 @@ def index():
     conn = conectar_banco()
     cursor = conn.cursor()
     
-    # Busca todas as pessoas cadastradas no banco
-    cursor.execute('SELECT * FROM pessoas ORDER BY nome')
+    # Busca somente pessoas ativas na listagem da chamada
+    cursor.execute('SELECT * FROM pessoas WHERE ativo = 1 ORDER BY nome')
     pessoas = cursor.fetchall()
     conn.close()
 
@@ -30,22 +30,25 @@ def registrar_presenca():
     conn = conectar_banco()
     cursor = conn.cursor()
 
-    # 1. Cria ou pega a aula do dia
-    cursor.execute('INSERT INTO aulas (data, descricao) VALUES (?, ?)', (data_aula, descricao))
-    aula_id = cursor.lastrowid
+    # 1. Cria a aula apenas se a data ainda não existir; se já existir, reaproveita a mesma aula
+    cursor.execute('INSERT OR IGNORE INTO aulas (data, descricao) VALUES (?, ?)', (data_aula, descricao))
+    cursor.execute('SELECT id FROM aulas WHERE data = ?', (data_aula,))
+    aula = cursor.fetchone()
+    aula_id = aula['id']
 
-    # 2. Registra o status (Presente/Falta) para cada pessoa
-    cursor.execute('SELECT id FROM pessoas')
+    # 2. Registra o status (Presente/Falta) para cada pessoa ativa
+    cursor.execute('SELECT id FROM pessoas WHERE ativo = 1')
     pessoas = cursor.fetchall()
 
     for pessoa in pessoas:
         pessoa_id = pessoa['id']
-        # Pega o status enviado pelo botão (se não selecionado, marca Falta)
         status = request.form.get(f'status_{pessoa_id}', 'Falta')
         
         cursor.execute('''
             INSERT INTO presencas (pessoa_id, aula_id, status)
             VALUES (?, ?, ?)
+            ON CONFLICT(pessoa_id, aula_id)
+            DO UPDATE SET status = excluded.status
         ''', (pessoa_id, aula_id, status))
 
     conn.commit()
@@ -65,8 +68,8 @@ def cadastrar():
         conn = conectar_banco()
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO pessoas (nome, matricula, turma_setor, tipo)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO pessoas (nome, matricula, turma_setor, tipo, ativo, visivel_relatorio)
+            VALUES (?, ?, ?, ?, 1, 1)
         ''', (nome, matricula, turma_setor, tipo))
         conn.commit()
         conn.close()
@@ -102,16 +105,25 @@ def editar_pessoa(pessoa_id):
 
     return render_template('editar_pessoa.html', pessoa=pessoa)
 
-# --- ROTA 5: Excluir Pessoa Cadastrada ---
+# --- ROTA 5: Excluir Pessoa Cadastrada (lista da chamada) ---
 @app.route('/excluir_pessoa/<int:pessoa_id>', methods=['POST'])
 def excluir_pessoa(pessoa_id):
     conn = conectar_banco()
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM presencas WHERE pessoa_id = ?', (pessoa_id,))
-    cursor.execute('DELETE FROM pessoas WHERE id = ?', (pessoa_id,))
+    cursor.execute('UPDATE pessoas SET ativo = 0 WHERE id = ?', (pessoa_id,))
     conn.commit()
     conn.close()
     return redirect(url_for('index'))
+
+# --- ROTA 5B: Excluir Pessoa apenas do relatório ---
+@app.route('/excluir_pessoa_relatorio/<int:pessoa_id>', methods=['POST'])
+def excluir_pessoa_relatorio(pessoa_id):
+    conn = conectar_banco()
+    cursor = conn.cursor()
+    cursor.execute('UPDATE pessoas SET visivel_relatorio = 0 WHERE id = ?', (pessoa_id,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for('relatorio'))
 
 # --- ROTA 6: Tela de Relatórios e Histórico ---
 @app.route('/relatorio')
@@ -122,6 +134,7 @@ def relatorio():
     # Consulta avançada que conta presenças e faltas agrupadas por pessoa
     cursor.execute('''
         SELECT 
+            p.id,
             p.nome,
             p.turma_setor,
             COUNT(CASE WHEN pr.status = 'Presente' THEN 1 END) as presencas,
@@ -129,7 +142,9 @@ def relatorio():
             COUNT(pr.id) as total_aulas
         FROM pessoas p
         LEFT JOIN presencas pr ON p.id = pr.pessoa_id
+        WHERE p.visivel_relatorio = 1
         GROUP BY p.id
+        ORDER BY p.nome
     ''')
     dados = cursor.fetchall()
     conn.close()

@@ -16,10 +16,11 @@
             <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>Turma/Setor</th>
+                    <th>Instrutor</th>
                     <th>Presenças</th>
                     <th>Faltas</th>
                     <th>Total de Dias</th>
+                    <th style="text-align:right;">Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -30,6 +31,12 @@
                     <td style="color: green; font-weight: bold;">{{ linha.presencas }}</td>
                     <td style="color: red; font-weight: bold;">{{ linha.faltas }}</td>
                     <td>{{ linha.total_aulas }}</td>
+                    <td style="text-align:right; white-space:nowrap;">
+                        <a href="{{ url_for('editar_pessoa', pessoa_id=linha.id) }}" class="btn" style="padding: 4px 8px; font-size: 12px;">✏️ Editar</a>
+                        <form action="{{ url_for('excluir_pessoa_relatorio', pessoa_id=linha.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn" style="padding: 4px 8px; font-size: 12px; background: #c0392b;">🗑️ Excluir</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>

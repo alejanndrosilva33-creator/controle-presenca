@@ -48,9 +48,7 @@
                             </label>
                             <div style="margin-top: 8px;">
                                 <a href="{{ url_for('editar_pessoa', pessoa_id=pessoa.id) }}" class="btn" style="padding: 4px 8px; font-size: 12px;">✏️ Editar</a>
-                                <form action="{{ url_for('excluir_pessoa', pessoa_id=pessoa.id) }}" method="POST" style="display:inline;">
-                                    <button type="submit" class="btn" style="padding: 4px 8px; font-size: 12px; background: #c0392b;">🗑️ Excluir</button>
-                                </form>
+                                <button type="submit" form="delete-form-{{ pessoa.id }}" class="btn" style="padding: 4px 8px; font-size: 12px; background: #c0392b;">🗑️ Excluir</button>
                             </div>
                         </td>
                     </tr>
@@ -66,6 +64,10 @@
         {% else %}
             <p>Nenhuma pessoa cadastrada ainda. Clique no botão acima para cadastrar!</p>
         {% endif %}
+
+        {% for pessoa in pessoas %}
+        <form id="delete-form-{{ pessoa.id }}" action="{{ url_for('excluir_pessoa', pessoa_id=pessoa.id) }}" method="POST" style="display:none;"></form>
+        {% endfor %}
     </div>
 </body>
 </html>

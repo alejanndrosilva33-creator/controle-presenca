@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Banco de dados local
+*.db
+presenca.db
+
+#Ambiente virtual
+venv/
+.venv/
